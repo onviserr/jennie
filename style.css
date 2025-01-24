@@ -1,35 +1,41 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    background: #f2f2f2;
-    font-family: sans-serif;
-  }
-  
-  #gameCanvas {
-    display: block;
-    margin: 0 auto;
-    background: #87cefa; /* Блакитне небо */
-    border: 2px solid #555;
-    margin-top: 20px;
-  }
-  
-  .info {
-    width: 800px;
-    margin: 0 auto;
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 18px;
-  }
-  
-  .info div {
-    background: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  
+/* style.css */
+
+/* Скидання відступів та встановлення базових стилів */
+body {
+  margin: 0;
+  padding: 0;
+  background: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+/* Стилі для холста гри */
+#gameCanvas {
+  background: #9bd5ff; /* Небесний фон */
+  border: 2px solid #333;
+  display: block;
+}
+
+/* Інформаційна панель для очок та життів */
+#info {
+  text-align: center;
+  margin-top: 10px;
+}
+
+#info span {
+  margin: 0 20px;
+  font-weight: bold;
+}
+
+/* Стилі для повідомлення про завершення гри */
+#gameOver {
+  font-size: 30px;
+  color: red;
+  text-align: center;
+  display: none; /* Приховано до завершення гри */
+  margin-top: 20px;
+}

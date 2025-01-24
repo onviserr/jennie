@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>Собака збирає кісточки</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Catching Game: Собака ловить кісточки</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
-  <div class="info">
-    <div>Рахунок: <span id="score">0</span></div>
-    <div>Натисніть <strong>стрілку вгору</strong> або <strong>пробіл</strong>, щоб стрибнути</div>
+
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  
+  <div id="info">
+    <span>Очки: <span id="score">0</span></span>
+    <span>Життя: <span id="lives">3</span></span>
   </div>
+  
+  <div id="gameOver"></div>
+
   <script src="game.js"></script>
+  
 </body>
 </html>

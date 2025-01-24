@@ -1,144 +1,217 @@
-// Отримуємо посилання на canvas і контекст
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// game.js
 
-// Отримуємо посилання на елемент рахунку
-const scoreElement = document.getElementById("score");
+// Отримуємо доступ до холста (canvas) та контексту
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// Параметри гри
-const gravity = 0.6;
-const groundHeight = 50; // висота землі знизу
-const dogSpeed = 4;     // горизонтальна швидкість собаки, якщо потрібно
-const jumpForce = 12;   // сила стрибка
-let score = 0;
+// Розміри ігрового поля
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 
-// Опис об'єкта "Собака"
+// Параметри собаки
 const dog = {
-  x: 100,
-  y: canvas.height - groundHeight - 50,
+  x: WIDTH / 2 - 25, // початкова позиція (по центру)
+  y: HEIGHT - 60,    // трошки вище нижнього краю
   width: 50,
   height: 50,
-  vy: 0,            // вертикальна швидкість
-  onGround: false,  // перевірка, чи на землі
+  speed: 5,
+  dx: 0 // напрямок руху (0 - без руху, -1 - ліворуч, 1 - праворуч)
 };
 
-// Масив кісточок
+// Ігрові змінні
+let score = 0;
+let lives = 3;
+let gameOver = false;
+
+// Моделі "кісточок" (які дають очки) та "бомб" (які забирають життя)
 const bones = [];
-const boneWidth = 30;
-const boneHeight = 30;
+const bombs = [];
 
-// Таймери для появи кісточок
-let boneSpawnTimer = 0;
-const boneSpawnInterval = 90; // кожні 90 кадрів з’являється кісточка
+// Параметри для випадкового створення елементів
+const spawnInterval = 1500; // раз на 1.5 секунди спавн
+let lastSpawnTime = 0;
 
-// Функція ініціалізації кісточок (якщо треба заповнити спочатку)
-// Можна викликати, щоб закинути кілька кісточок відразу
-function initBones() {
-  bones.push({
-    x: 500,
-    y: canvas.height - groundHeight - boneHeight,
-    width: boneWidth,
-    height: boneHeight
+// Функція для створення кісточки
+function spawnBone() {
+  const bone = {
+    x: Math.random() * (WIDTH - 30) + 15, // щоб не виходило за межі
+    y: -20,
+    radius: 15,
+    speed: 3 + Math.random() * 2 // від 3 до 5
+  };
+  bones.push(bone);
+}
+
+// Функція для створення бомби
+function spawnBomb() {
+  const bomb = {
+    x: Math.random() * (WIDTH - 20) + 10,
+    y: -20,
+    radius: 10,
+    speed: 3 + Math.random() * 2 // від 3 до 5
+  };
+  bombs.push(bomb);
+}
+
+// Функція для оновлення позиції собаки
+function updateDog() {
+  dog.x += dog.dx * dog.speed;
+  // Не даємо вийти за межі екрану
+  if (dog.x < 0) dog.x = 0;
+  if (dog.x + dog.width > WIDTH) dog.x = WIDTH - dog.width;
+}
+
+// Функція для оновлення кісточок
+function updateBones() {
+  for (let i = bones.length - 1; i >= 0; i--) {
+    const bone = bones[i];
+    bone.y += bone.speed;
+
+    // Перевірка зіткнення із собакою
+    if (checkCollisionCircleRect(bone, dog)) {
+      score++;
+      updateScore();
+      bones.splice(i, 1); // видаляємо кісточку з масиву
+    } else if (bone.y - bone.radius > HEIGHT) {
+      // Якщо кісточка вийшла за нижню межу
+      bones.splice(i, 1);
+    }
+  }
+}
+
+// Функція для оновлення бомб
+function updateBombs() {
+  for (let i = bombs.length - 1; i >= 0; i--) {
+    const bomb = bombs[i];
+    bomb.y += bomb.speed;
+
+    // Перевірка зіткнення із собакою
+    if (checkCollisionCircleRect(bomb, dog)) {
+      lives--;
+      updateLives();
+      bombs.splice(i, 1); // видаляємо бомбу
+      if (lives <= 0) {
+        endGame();
+      }
+    } else if (bomb.y - bomb.radius > HEIGHT) {
+      // Якщо бомба вийшла за нижню межу
+      bombs.splice(i, 1);
+    }
+  }
+}
+
+// Перевірка зіткнення кола (кісточка чи бомба) з прямокутником (собака)
+function checkCollisionCircleRect(circle, rect) {
+  // Найближча точка прямокутника до центру кола
+  const distX = Math.abs(circle.x - (rect.x + rect.width / 2));
+  const distY = Math.abs(circle.y - (rect.y + rect.height / 2));
+
+  // Якщо відстань більша, ніж половина прямокутника + радіус кола,
+  // то точно немає зіткнення
+  if (distX > (rect.width / 2 + circle.radius)) return false;
+  if (distY > (rect.height / 2 + circle.radius)) return false;
+
+  // Якщо вхідні перевірки пройдено, потенційно є зіткнення
+  if (distX <= (rect.width / 2)) return true;
+  if (distY <= (rect.height / 2)) return true;
+
+  // Перевірка куточків
+  const dx = distX - rect.width / 2;
+  const dy = distY - rect.height / 2;
+  return (dx * dx + dy * dy <= (circle.radius * circle.radius));
+}
+
+// Функція відображення (рендер)
+function draw() {
+  // Очищаємо холст
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+  // Малюємо собаку (прямокутник)
+  ctx.fillStyle = 'brown';
+  ctx.fillRect(dog.x, dog.y, dog.width, dog.height);
+
+  // Малюємо кісточки (кола)
+  ctx.fillStyle = 'white';
+  bones.forEach(bone => {
+    ctx.beginPath();
+    ctx.arc(bone.x, bone.y, bone.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+  });
+
+  // Малюємо бомби (кола)
+  ctx.fillStyle = 'black';
+  bombs.forEach(bomb => {
+    ctx.beginPath();
+    ctx.arc(bomb.x, bomb.y, bomb.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
   });
 }
 
-// Функція для створення випадкової кісточки
-function spawnBone() {
-  // Можна регулювати випадкове розташування за необхідності
-  const boneY = canvas.height - groundHeight - boneHeight; // на "землі"
-  bones.push({
-    x: canvas.width,
-    y: boneY,
-    width: boneWidth,
-    height: boneHeight
-  });
+// Оновлення відображення очок
+function updateScore() {
+  document.getElementById('score').textContent = score;
+}
+
+// Оновлення відображення життів
+function updateLives() {
+  document.getElementById('lives').textContent = lives;
+}
+
+// Основний цикл гри
+let lastTime = 0;
+function gameLoop(timestamp) {
+  if (gameOver) return; // Якщо гра завершена, більше нічого не робимо
+
+  const delta = timestamp - lastTime;
+  lastTime = timestamp;
+
+  // Генеруємо нові елементи з певним інтервалом
+  if (timestamp - lastSpawnTime > spawnInterval) {
+    lastSpawnTime = timestamp;
+    // Випадковим чином створюємо або кісточку, або бомбу
+    const randomItem = Math.random();
+    if (randomItem < 0.6) {
+      spawnBone(); // з імовірністю 60% - кісточка
+    } else {
+      spawnBomb(); // з імовірністю 40% - бомба
+    }
+  }
+
+  updateDog();
+  updateBones();
+  updateBombs();
+  draw();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Функція завершення гри
+function endGame() {
+  gameOver = true;
+  const gameOverDiv = document.getElementById('gameOver');
+  gameOverDiv.style.display = 'block';
+  gameOverDiv.textContent = `Гру завершено! Ваш результат: ${score} очок`;
 }
 
 // Обробка натискань клавіш
-document.addEventListener("keydown", (e) => {
-  if ((e.code === "Space" || e.code === "ArrowUp") && dog.onGround) {
-    dog.vy = -jumpForce;
-    dog.onGround = false;
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'ArrowLeft') {
+    dog.dx = -1;
+  } else if (e.code === 'ArrowRight') {
+    dog.dx = 1;
   }
 });
 
-// Головний цикл гри
-function update() {
-  // Очищення canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Малюємо "землю" (простий прямокутник унизу)
-  ctx.fillStyle = "#654321";
-  ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
-
-  // Оновлюємо вертикальну позицію собаки з урахуванням гравітації
-  dog.y += dog.vy;
-  dog.vy += gravity;
-
-  // Перевірка, чи собака на землі
-  if (dog.y + dog.height >= canvas.height - groundHeight) {
-    dog.y = canvas.height - groundHeight - dog.height;
-    dog.onGround = true;
-    dog.vy = 0;
+// Коли відпускаємо клавішу – зупиняємо рух собаки
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+    dog.dx = 0;
   }
+});
 
-  // Малюємо собаку (простий прямокутник або замініть на картинку)
-  ctx.fillStyle = "#ff9933";
-  ctx.fillRect(dog.x, dog.y, dog.width, dog.height);
-
-  // Оновлюємо й малюємо кісточки
-  boneSpawnTimer++;
-  if (boneSpawnTimer > boneSpawnInterval) {
-    spawnBone();
-    boneSpawnTimer = 0;
-  }
-
-  for (let i = 0; i < bones.length; i++) {
-    const bone = bones[i];
-
-    // Рух кісточки зліва направо чи навпаки
-    bone.x -= 5; // рухаємо кісточку вліво, щоби створити ілюзію руху
-
-    // Малюємо кісточку (простий прямокутник або замініть на картинку)
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(bone.x, bone.y, bone.width, bone.height);
-
-    // Перевірка зіткнення з собакою
-    if (isColliding(dog, bone)) {
-      score++;
-      updateScore();
-      // Видаляємо кісточку з масиву
-      bones.splice(i, 1);
-      i--;
-      continue;
-    }
-
-    // Якщо кісточка вийшла за межі екрану — видаляємо
-    if (bone.x + bone.width < 0) {
-      bones.splice(i, 1);
-      i--;
-    }
-  }
-
-  // Просимо браузер оновити кадр
-  requestAnimationFrame(update);
-}
-
-// Функція перевірки зіткнення двох об'єктів
-function isColliding(rect1, rect2) {
-  return !(
-    rect1.x + rect1.width < rect2.x ||
-    rect1.x > rect2.x + rect2.width ||
-    rect1.y + rect1.height < rect2.y ||
-    rect1.y > rect2.y + rect2.height
-  );
-}
-
-// Функція оновлення рахунку
-function updateScore() {
-  scoreElement.textContent = score;
-}
-
-// Запуск гри
-initBones();
-update();
+// Запускаємо гру
+updateScore();
+updateLives();
+requestAnimationFrame(gameLoop);
