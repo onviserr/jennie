@@ -25,6 +25,23 @@ lunchImage.src = "lunch.png"; // Path to lunch image
 canImage.src = "can.png"; // Path to can image
 backgroundImage.src = "background.png"; // Path to background image
 
+// Wait for all images to load before starting the game
+let imagesLoaded = 0;
+const totalImages = 5;
+
+const imageLoadHandler = () => {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+        startGame(); // Start the game when all images are loaded
+    }
+};
+
+dogImage.onload = imageLoadHandler;
+filetImage.onload = imageLoadHandler;
+lunchImage.onload = imageLoadHandler;
+canImage.onload = imageLoadHandler;
+backgroundImage.onload = imageLoadHandler;
+
 function startGame() {
     document.getElementById("menu").style.display = "none";
     document.getElementById("gameArea").style.display = "block";
