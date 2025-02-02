@@ -1,41 +1,33 @@
-/* style.css */
-
-/* Скидання відступів та встановлення базових стилів */
 body {
-  margin: 0;
-  padding: 0;
-  background: #eee;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  font-family: sans-serif;
-}
-
-/* Стилі для холста гри */
-#gameCanvas {
-  background: #9bd5ff; /* Небесний фон */
-  border: 2px solid #333;
-  display: block;
-}
-
-/* Інформаційна панель для очок та життів */
-#info {
+  font-family: Arial, sans-serif;
   text-align: center;
+  background-color: #f4f4f4;
+}
+
+canvas {
+  border: 2px solid #000;
+}
+
+#menu {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  display: none;
+}
+
+#gameArea {
+  display: none;
+  margin-top: 20px;
+}
+
+#score, #lives, #health {
+  font-size: 20px;
   margin-top: 10px;
 }
 
-#info span {
-  margin: 0 20px;
-  font-weight: bold;
-}
-
-/* Стилі для повідомлення про завершення гри */
-#gameOver {
-  font-size: 30px;
-  color: red;
-  text-align: center;
-  display: none; /* Приховано до завершення гри */
-  margin-top: 20px;
+.hidden {
+  display: none;
 }

@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Catching Game: Собака ловить кісточки</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Bones</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="menu">
+        <button onclick="startGame()">Play</button>
+    </div>
+    <div id="gameArea">
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        <div id="score">Score: 0</div>
+        <div id="lives">Lives: 5</div>
+        <div id="health">Health: 100</div>
+    </div>
+    <div id="endScreen" class="hidden">
+        <h2>Game Over!</h2>
+        <p id="finalScore"></p>
+        <button onclick="restartGame()">Restart</button>
+    </div>
 
-  <canvas id="gameCanvas" width="600" height="400"></canvas>
-  
-  <div id="info">
-    <span>Очки: <span id="score">0</span></span>
-    <span>Життя: <span id="lives">3</span></span>
-  </div>
-  
-  <div id="gameOver"></div>
-
-  <script src="game.js"></script>
-  
+    <script src="game.js"></script>
 </body>
 </html>
