@@ -6,18 +6,19 @@ let lives = 5;
 let health = 100;
 let gameInterval;
 let objects = [];
-let dogX = canvas.width / 2 - 50;
-let dogY = canvas.height - 100;
-let dogWidth = 100;  // Increase Jennie's width
-let dogHeight = 100; // Increase Jennie's height
+let dogX = canvas.width / 2 - 75; // Bigger dog starting X position
+let dogY = canvas.height - 150;  // Bigger dog starting Y position
+let dogWidth = 150;  // Increase dog size
+let dogHeight = 150; // Increase dog size
 let speed = 5;
-let isPaused = false; // Variable to control pause
+let isPaused = false; // Pause variable
 
 // Image objects
 const dogImage = new Image();
 const filetImage = new Image();
 const lunchImage = new Image();
 const canImage = new Image();
+const fishImage = new Image(); // Fish image
 const backgroundImage = new Image();
 
 // Load images
@@ -25,11 +26,12 @@ dogImage.src = "jennie.png";
 filetImage.src = "filet.png";
 lunchImage.src = "lunch.png";
 canImage.src = "can.png";
+fishImage.src = "fish.png";  // Fish image source
 backgroundImage.src = "background.png";
 
 // Wait for all images to load before starting the game
 let imagesLoaded = 0;
-const totalImages = 5;
+const totalImages = 6;  // We have one more image now (fish)
 
 const imageLoadHandler = () => {
     imagesLoaded++;
@@ -42,6 +44,7 @@ dogImage.onload = imageLoadHandler;
 filetImage.onload = imageLoadHandler;
 lunchImage.onload = imageLoadHandler;
 canImage.onload = imageLoadHandler;
+fishImage.onload = imageLoadHandler;
 backgroundImage.onload = imageLoadHandler;
 
 // Start the game
@@ -57,8 +60,8 @@ function restartGame() {
     lives = 5;
     health = 100;
     objects = [];
-    dogX = canvas.width / 2 - 50;
-    dogY = canvas.height - 100;
+    dogX = canvas.width / 2 - 75;
+    dogY = canvas.height - 150;
     document.getElementById("score").innerText = `Score: ${score}`;
     document.getElementById("lives").innerText = `Lives: ${lives}`;
     document.getElementById("health").innerText = `Health: ${health}`;
@@ -72,11 +75,11 @@ function updateCanvasSize() {
 }
 
 function updateGame() {
-    if (isPaused) return; // Stop the game loop if paused
+    if (isPaused) return;
 
     updateCanvasSize();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // Draw the background
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
     moveDog();
     moveObjects();
     checkCollisions();
@@ -98,35 +101,46 @@ function generateObjects() {
         const randomType = Math.random();
         let object;
 
-        if (randomType < 0.33) {
+        if (randomType < 0.25) {
             object = {
-                x: Math.random() * (canvas.width - 30),
-                y: -30,
-                width: 30,
-                height: 30,
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
                 image: filetImage,
                 points: 20,
                 type: "filet"
             };
-        } else if (randomType < 0.66) {
+        } else if (randomType < 0.5) {
             object = {
-                x: Math.random() * (canvas.width - 30),
-                y: -30,
-                width: 30,
-                height: 30,
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
                 image: lunchImage,
                 points: 10,
                 type: "lunch"
             };
-        } else {
+        } else if (randomType < 0.75) {
             object = {
-                x: Math.random() * (canvas.width - 30),
-                y: -30,
-                width: 30,
-                height: 30,
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
                 image: canImage,
                 points: 5,
                 type: "can"
+            };
+        } else {
+            // Fish (removes life)
+            object = {
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
+                image: fishImage,
+                points: -1,  // Remove life when caught
+                type: "fish"
             };
         }
 
@@ -144,13 +158,12 @@ function moveObjects() {
 }
 
 function drawDog() {
-    // Scale the dog image properly to avoid blurriness
-    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); 
+    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); // Draw the larger dog
 }
 
 function drawObjects() {
     for (let i = 0; i < objects.length; i++) {
-        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); 
+        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); // Draw food and fish
     }
 }
 
@@ -158,8 +171,13 @@ function checkCollisions() {
     for (let i = 0; i < objects.length; i++) {
         if (dogX < objects[i].x + objects[i].width && dogX + dogWidth > objects[i].x &&
             dogY < objects[i].y + objects[i].height && dogY + dogHeight > objects[i].y) {
-            score += objects[i].points;
-            objects.splice(i, 1); // Remove object after collision
+            
+            if (objects[i].type === "fish") {
+                lives -= 1;  // Lose a life if fish is caught
+            } else {
+                score += objects[i].points;  // Add points for food
+            }
+            objects.splice(i, 1); // Remove the object after collision
         }
     }
 }
