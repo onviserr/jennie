@@ -6,24 +6,26 @@ let lives = 5;
 let health = 100;
 let gameInterval;
 let objects = [];
-let dogX = canvas.width / 2 - 25;
-let dogY = canvas.height - 60;
-let dogWidth = 50;
-let dogHeight = 50;
+let dogX = canvas.width / 2 - 50;
+let dogY = canvas.height - 100;
+let dogWidth = 100;  // Increase Jennie's width
+let dogHeight = 100; // Increase Jennie's height
 let speed = 5;
+let isPaused = false; // Variable to control pause
 
-const dogImage = new Image(); // Create a new Image object for the dog
-const filetImage = new Image(); // Create a new Image object for the filet
-const lunchImage = new Image(); // Create a new Image object for the lunch
-const canImage = new Image(); // Create a new Image object for the can
-const backgroundImage = new Image(); // Create a new Image object for the background
+// Image objects
+const dogImage = new Image();
+const filetImage = new Image();
+const lunchImage = new Image();
+const canImage = new Image();
+const backgroundImage = new Image();
 
-// Load the images
-dogImage.src = "jennie.png"; // Path to dog image (jennie.png)
-filetImage.src = "filet.png"; // Path to filet image
-lunchImage.src = "lunch.png"; // Path to lunch image
-canImage.src = "can.png"; // Path to can image
-backgroundImage.src = "background.png"; // Path to background image
+// Load images
+dogImage.src = "jennie.png";
+filetImage.src = "filet.png";
+lunchImage.src = "lunch.png";
+canImage.src = "can.png";
+backgroundImage.src = "background.png";
 
 // Wait for all images to load before starting the game
 let imagesLoaded = 0;
@@ -32,7 +34,7 @@ const totalImages = 5;
 const imageLoadHandler = () => {
     imagesLoaded++;
     if (imagesLoaded === totalImages) {
-        startGame(); // Start the game when all images are loaded
+        startGame();
     }
 };
 
@@ -42,6 +44,7 @@ lunchImage.onload = imageLoadHandler;
 canImage.onload = imageLoadHandler;
 backgroundImage.onload = imageLoadHandler;
 
+// Start the game
 function startGame() {
     document.getElementById("menu").style.display = "none";
     document.getElementById("gameArea").style.display = "block";
@@ -54,8 +57,8 @@ function restartGame() {
     lives = 5;
     health = 100;
     objects = [];
-    dogX = canvas.width / 2 - 25;
-    dogY = canvas.height - 60;
+    dogX = canvas.width / 2 - 50;
+    dogY = canvas.height - 100;
     document.getElementById("score").innerText = `Score: ${score}`;
     document.getElementById("lives").innerText = `Lives: ${lives}`;
     document.getElementById("health").innerText = `Health: ${health}`;
@@ -63,8 +66,16 @@ function restartGame() {
     startGame();
 }
 
+function updateCanvasSize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
 function updateGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+    if (isPaused) return; // Stop the game loop if paused
+
+    updateCanvasSize();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // Draw the background
     moveDog();
     moveObjects();
@@ -88,7 +99,6 @@ function generateObjects() {
         let object;
 
         if (randomType < 0.33) {
-            // Spawn the filet (most XP)
             object = {
                 x: Math.random() * (canvas.width - 30),
                 y: -30,
@@ -99,7 +109,6 @@ function generateObjects() {
                 type: "filet"
             };
         } else if (randomType < 0.66) {
-            // Spawn the lunch (average XP)
             object = {
                 x: Math.random() * (canvas.width - 30),
                 y: -30,
@@ -110,7 +119,6 @@ function generateObjects() {
                 type: "lunch"
             };
         } else {
-            // Spawn the can (least XP)
             object = {
                 x: Math.random() * (canvas.width - 30),
                 y: -30,
@@ -136,12 +144,13 @@ function moveObjects() {
 }
 
 function drawDog() {
-    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); // Draw the dog image (jennie.png)
+    // Scale the dog image properly to avoid blurriness
+    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); 
 }
 
 function drawObjects() {
     for (let i = 0; i < objects.length; i++) {
-        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); // Draw the object image (filet, lunch, can)
+        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); 
     }
 }
 
@@ -170,3 +179,18 @@ function endGame() {
 let keys = {};
 window.addEventListener("keydown", (e) => keys[e.key] = true);
 window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+// Implementing the pause functionality
+window.addEventListener("keydown", (e) => {
+    if (e.key === "p" || e.key === "P") {
+        isPaused = !isPaused; // Toggle pause
+        if (!isPaused) {
+            gameInterval = setInterval(updateGame, 20); // Restart game loop
+        } else {
+            clearInterval(gameInterval); // Stop game loop
+        }
+    }
+});
+
+// Update canvas size when the window is resized
+window.addEventListener("resize", updateCanvasSize);
