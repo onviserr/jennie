@@ -12,10 +12,18 @@ let dogWidth = 50;
 let dogHeight = 50;
 let speed = 5;
 
-const bone = { width: 30, height: 30, color: "#FFB6C1", points: 20, type: "bone" };
-const food = { width: 30, height: 30, color: "#FFDB58", points: 10, type: "food" };
-const can = { width: 30, height: 30, color: "#98AFC7", points: 5, type: "can" };
-const fish = { width: 30, height: 30, color: "#00BFFF", points: -25, type: "fish" };
+const dogImage = new Image(); // Create a new Image object for the dog
+const filetImage = new Image(); // Create a new Image object for the filet
+const lunchImage = new Image(); // Create a new Image object for the lunch
+const canImage = new Image(); // Create a new Image object for the can
+const backgroundImage = new Image(); // Create a new Image object for the background
+
+// Load the images
+dogImage.src = "jennie.png"; // Path to dog image (jennie.png)
+filetImage.src = "filet.png"; // Path to filet image
+lunchImage.src = "lunch.png"; // Path to lunch image
+canImage.src = "can.png"; // Path to can image
+backgroundImage.src = "background.png"; // Path to background image
 
 function startGame() {
     document.getElementById("menu").style.display = "none";
@@ -39,7 +47,8 @@ function restartGame() {
 }
 
 function updateGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // Draw the background
     moveDog();
     moveObjects();
     checkCollisions();
@@ -58,16 +67,44 @@ function moveDog() {
 
 function generateObjects() {
     setInterval(function () {
-        const type = Math.random() > 0.5 ? (Math.random() > 0.5 ? bone : food) : can;
-        const object = {
-            x: Math.random() * (canvas.width - 30),
-            y: -30,
-            width: type.width,
-            height: type.height,
-            color: type.color,
-            type: type.type,
-            points: type.points
-        };
+        const randomType = Math.random();
+        let object;
+
+        if (randomType < 0.33) {
+            // Spawn the filet (most XP)
+            object = {
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                image: filetImage,
+                points: 20,
+                type: "filet"
+            };
+        } else if (randomType < 0.66) {
+            // Spawn the lunch (average XP)
+            object = {
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                image: lunchImage,
+                points: 10,
+                type: "lunch"
+            };
+        } else {
+            // Spawn the can (least XP)
+            object = {
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                image: canImage,
+                points: 5,
+                type: "can"
+            };
+        }
+
         objects.push(object);
     }, 1000);
 }
@@ -82,14 +119,12 @@ function moveObjects() {
 }
 
 function drawDog() {
-    ctx.fillStyle = "#FF4500";
-    ctx.fillRect(dogX, dogY, dogWidth, dogHeight);
+    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); // Draw the dog image (jennie.png)
 }
 
 function drawObjects() {
     for (let i = 0; i < objects.length; i++) {
-        ctx.fillStyle = objects[i].color;
-        ctx.fillRect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
+        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); // Draw the object image (filet, lunch, can)
     }
 }
 
@@ -97,16 +132,8 @@ function checkCollisions() {
     for (let i = 0; i < objects.length; i++) {
         if (dogX < objects[i].x + objects[i].width && dogX + dogWidth > objects[i].x &&
             dogY < objects[i].y + objects[i].height && dogY + dogHeight > objects[i].y) {
-            if (objects[i].type === "fish") {
-                health -= Math.abs(objects[i].points);
-                if (health <= 0) {
-                    lives -= 1;
-                    health = 100;
-                }
-            } else {
-                score += objects[i].points;
-            }
-            objects.splice(i, 1);
+            score += objects[i].points;
+            objects.splice(i, 1); // Remove object after collision
         }
     }
 }
