@@ -6,32 +6,32 @@ let lives = 5;
 let health = 100;
 let gameInterval;
 let objects = [];
-let dogX = canvas.width / 2 - 75; // Bigger dog starting X position
-let dogY = canvas.height - 150;  // Bigger dog starting Y position
-let dogWidth = 150;  // Increase dog size
-let dogHeight = 150; // Increase dog size
+let dogX = canvas.width / 2 - 50; // Position Jennie lower horizontally
+let dogY = canvas.height - 120;  // Move Jennie closer to the ground
+let dogWidth = 150;  // Increase Jennie's width
+let dogHeight = 160; // Increase Jennie's height
 let speed = 5;
-let isPaused = false; // Pause variable
+let isPaused = false;
 
 // Image objects
 const dogImage = new Image();
 const filetImage = new Image();
 const lunchImage = new Image();
 const canImage = new Image();
-const fishImage = new Image(); // Fish image
+const fishImage = new Image();
 const backgroundImage = new Image();
 
 // Load images
-dogImage.src = "jennie.png";
-filetImage.src = "filet.png";
-lunchImage.src = "lunch.png";
-canImage.src = "can.png";
-fishImage.src = "fish.png";  // Fish image source
-backgroundImage.src = "background.png";
+dogImage.src = "jennie.png";  // Jennie image (29x32)
+filetImage.src = "filet.png";  // Filet image
+lunchImage.src = "lunch.png";  // Lunch image
+canImage.src = "can.png";  // Can image
+fishImage.src = "fish.png";  // Fish image
+backgroundImage.src = "background.png";  // Background image
 
 // Wait for all images to load before starting the game
 let imagesLoaded = 0;
-const totalImages = 6;  // We have one more image now (fish)
+const totalImages = 6;
 
 const imageLoadHandler = () => {
     imagesLoaded++;
@@ -60,8 +60,8 @@ function restartGame() {
     lives = 5;
     health = 100;
     objects = [];
-    dogX = canvas.width / 2 - 75;
-    dogY = canvas.height - 150;
+    dogX = canvas.width / 2 - 50;
+    dogY = canvas.height - 120;
     document.getElementById("score").innerText = `Score: ${score}`;
     document.getElementById("lives").innerText = `Lives: ${lives}`;
     document.getElementById("health").innerText = `Health: ${health}`;
@@ -105,8 +105,8 @@ function generateObjects() {
             object = {
                 x: Math.random() * (canvas.width - 50),
                 y: -50,
-                width: 50,
-                height: 50,
+                width: 60,  // Increase the food size
+                height: 60, // Increase the food size
                 image: filetImage,
                 points: 20,
                 type: "filet"
@@ -115,8 +115,8 @@ function generateObjects() {
             object = {
                 x: Math.random() * (canvas.width - 50),
                 y: -50,
-                width: 50,
-                height: 50,
+                width: 60,  // Increase the food size
+                height: 60, // Increase the food size
                 image: lunchImage,
                 points: 10,
                 type: "lunch"
@@ -125,8 +125,8 @@ function generateObjects() {
             object = {
                 x: Math.random() * (canvas.width - 50),
                 y: -50,
-                width: 50,
-                height: 50,
+                width: 60,  // Increase the food size
+                height: 60, // Increase the food size
                 image: canImage,
                 points: 5,
                 type: "can"
@@ -136,8 +136,8 @@ function generateObjects() {
             object = {
                 x: Math.random() * (canvas.width - 50),
                 y: -50,
-                width: 50,
-                height: 50,
+                width: 60,  // Increase the fish size
+                height: 60, // Increase the fish size
                 image: fishImage,
                 points: -1,  // Remove life when caught
                 type: "fish"
@@ -158,12 +158,12 @@ function moveObjects() {
 }
 
 function drawDog() {
-    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight); // Draw the larger dog
+    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight);  // Draw the larger Jennie
 }
 
 function drawObjects() {
     for (let i = 0; i < objects.length; i++) {
-        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height); // Draw food and fish
+        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height);  // Draw food and fish
     }
 }
 
