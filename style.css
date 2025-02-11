@@ -1,15 +1,29 @@
-/* main.css */
-body {
+@import url(https://fonts.googleapis.com/css?family=Raleway);
+
+html, body {
   margin: 0;
   padding: 0;
-  background: #333;
+  font-family: 'Raleway', sans-serif;
+}
+
+.screen {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  padding-top: 20px;
+}
+
+.game {
+  text-align: center;
+}
+
+.header {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 canvas {
-  border: 2px solid #fff;
-  background: #000;
+  background: url("assets/background.png") no-repeat center center;
+  background-size: cover;
+  border: 2px solid #75ACE5;
 }

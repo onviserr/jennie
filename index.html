@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Jennie Game</title>
     <link rel="stylesheet" href="main.css">
+    <!-- Include keymaster for key handling (from vendor folder) -->
+    <script src="vendor/keymaster.js"></script>
   </head>
   <body>
-    <canvas id="gameCanvas"></canvas>
-    <script src="game.js"></script>
+    <div class="screen">
+      <div class="game">
+        <h1 class="header">Jennie Game</h1>
+        <canvas id="canvas" width="400" height="500"></canvas>
+      </div>
+    </div>
+    <!-- Load the game view as an ES module -->
+    <script type="module" src="lib/game_view.js"></script>
   </body>
 </html>
