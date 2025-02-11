@@ -1,214 +1,219 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// game.js
 
-let score = 0;
-let lives = 5;
-let health = 100;
-let gameInterval;
-let objects = [];
-let dogX = canvas.width / 2 - 50; // Position Jennie lower horizontally
-let dogY = canvas.height - 120;  // Move Jennie closer to the ground
-let dogWidth = 150;  // Increase Jennie's width
-let dogHeight = 160; // Increase Jennie's height
-let speed = 5;
-let isPaused = false;
-
-// Image objects
-const dogImage = new Image();
-const filetImage = new Image();
-const lunchImage = new Image();
-const canImage = new Image();
-const fishImage = new Image();
-const backgroundImage = new Image();
-
-// Load images
-dogImage.src = "jennie.png";  // Jennie image (29x32)
-filetImage.src = "filet.png";  // Filet image
-lunchImage.src = "lunch.png";  // Lunch image
-canImage.src = "can.png";  // Can image
-fishImage.src = "fish.png";  // Fish image
-backgroundImage.src = "background.png";  // Background image
-
-// Wait for all images to load before starting the game
-let imagesLoaded = 0;
-const totalImages = 6;
-
-const imageLoadHandler = () => {
-    imagesLoaded++;
-    if (imagesLoaded === totalImages) {
-        startGame();
+// --- Player Class ---
+class Dog {
+    constructor() {
+      this.x = 170;
+      this.y = 450;
+      this.width = 60;
+      this.height = 45;
+      this.image = new Image();
+      this.image.src = 'assets/jennie.png';
     }
-};
-
-dogImage.onload = imageLoadHandler;
-filetImage.onload = imageLoadHandler;
-lunchImage.onload = imageLoadHandler;
-canImage.onload = imageLoadHandler;
-fishImage.onload = imageLoadHandler;
-backgroundImage.onload = imageLoadHandler;
-
-// Start the game
-function startGame() {
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("gameArea").style.display = "block";
-    gameInterval = setInterval(updateGame, 20);
-    generateObjects();
-}
-
-function restartGame() {
-    score = 0;
-    lives = 5;
-    health = 100;
-    objects = [];
-    dogX = canvas.width / 2 - 50;
-    dogY = canvas.height - 120;
-    document.getElementById("score").innerText = `Score: ${score}`;
-    document.getElementById("lives").innerText = `Lives: ${lives}`;
-    document.getElementById("health").innerText = `Health: ${health}`;
-    document.getElementById("endScreen").classList.add("hidden");
-    startGame();
-}
-
-function updateCanvasSize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-function updateGame() {
-    if (isPaused) return;
-
-    updateCanvasSize();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-    moveDog();
-    moveObjects();
-    checkCollisions();
-    drawDog();
-    drawObjects();
-    updateUI();
-    if (lives <= 0) {
-        endGame();
+    
+    moveLeft() {
+      if (this.x > 0) this.x -= 20;
     }
-}
-
-function moveDog() {
-    if (keys["ArrowLeft"] && dogX > 0) dogX -= speed;
-    if (keys["ArrowRight"] && dogX < canvas.width - dogWidth) dogX += speed;
-}
-
-function generateObjects() {
-    setInterval(function () {
-        const randomType = Math.random();
-        let object;
-
-        if (randomType < 0.25) {
-            object = {
-                x: Math.random() * (canvas.width - 50),
-                y: -50,
-                width: 60,  // Increase the food size
-                height: 60, // Increase the food size
-                image: filetImage,
-                points: 20,
-                type: "filet"
-            };
-        } else if (randomType < 0.5) {
-            object = {
-                x: Math.random() * (canvas.width - 50),
-                y: -50,
-                width: 60,  // Increase the food size
-                height: 60, // Increase the food size
-                image: lunchImage,
-                points: 10,
-                type: "lunch"
-            };
-        } else if (randomType < 0.75) {
-            object = {
-                x: Math.random() * (canvas.width - 50),
-                y: -50,
-                width: 60,  // Increase the food size
-                height: 60, // Increase the food size
-                image: canImage,
-                points: 5,
-                type: "can"
-            };
-        } else {
-            // Fish (removes life)
-            object = {
-                x: Math.random() * (canvas.width - 50),
-                y: -50,
-                width: 60,  // Increase the fish size
-                height: 60, // Increase the fish size
-                image: fishImage,
-                points: -1,  // Remove life when caught
-                type: "fish"
-            };
+    
+    moveRight() {
+      if (this.x < 400 - this.width) this.x += 20;
+    }
+    
+    draw(ctx) {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+  }
+  
+  // --- Falling Object Base Class ---
+  class FallingObject {
+    constructor(options) {
+      this.x = Math.floor(Math.random() * (400 - 30));
+      this.y = 0;
+      this.width = 30;
+      this.height = 30;
+      this.dy = 2; // initial falling speed
+      this.good = options.good;  // true for good objects, false for bad
+      this.xp = options.xp || 0;   // XP value (only for good objects)
+      this.image = new Image();
+      this.image.src = options.src;
+    }
+    
+    update() {
+      this.y += this.dy;
+    }
+    
+    draw(ctx) {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+    
+    collidesWith(obj) {
+      return (
+        this.x < obj.x + obj.width &&
+        this.x + this.width > obj.x &&
+        this.y < obj.y + obj.height &&
+        this.y + this.height > obj.y
+      );
+    }
+  }
+  
+  // --- Specific Falling Objects ---
+  // Good items:
+  class Filet extends FallingObject {
+    constructor() {
+      super({ good: true, src: 'assets/filet.png', xp: 3 });
+    }
+  }
+  
+  class Lunch extends FallingObject {
+    constructor() {
+      super({ good: true, src: 'assets/lunch.png', xp: 2 });
+    }
+  }
+  
+  class Can extends FallingObject {
+    constructor() {
+      super({ good: true, src: 'assets/can.png', xp: 1 });
+    }
+  }
+  
+  // Bad item:
+  class Fish extends FallingObject {
+    constructor() {
+      super({ good: false, src: 'assets/fish.png' });
+    }
+  }
+  
+  // --- Game Class ---
+  class Game {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.score = 0;       // XP score
+      this.lives = 3;
+      this.dog = new Dog();
+      this.goodObjects = [];  // Array for Filet, Lunch, and Can objects
+      this.badObjects = [];   // Array for Fish objects
+      this.goodInterval = null;
+      this.badInterval = null;
+    }
+    
+    start() {
+      // Start spawning good objects every 2 seconds
+      this.goodInterval = setInterval(() => {
+        const types = [Filet, Lunch, Can];
+        const RandomGood = types[Math.floor(Math.random() * types.length)];
+        this.goodObjects.push(new RandomGood());
+      }, 2000);
+      
+      // Start spawning fish (bad objects) every 5.5 seconds
+      this.badInterval = setInterval(() => {
+        this.badObjects.push(new Fish());
+      }, 5500);
+      
+      requestAnimationFrame(this.animate.bind(this));
+    }
+    
+    animate() {
+      this.update();
+      this.draw();
+      
+      if (this.lives > 0) {
+        requestAnimationFrame(this.animate.bind(this));
+      } else {
+        this.gameOver();
+      }
+    }
+    
+    update() {
+      // Update good objects and check for collisions
+      for (let i = this.goodObjects.length - 1; i >= 0; i--) {
+        let obj = this.goodObjects[i];
+        obj.update();
+        if (obj.collidesWith(this.dog)) {
+          this.score += obj.xp;
+          this.goodObjects.splice(i, 1);
+        } else if (obj.y > this.canvas.height) {
+          this.goodObjects.splice(i, 1);
         }
-
-        objects.push(object);
-    }, 1000);
-}
-
-function moveObjects() {
-    for (let i = 0; i < objects.length; i++) {
-        objects[i].y += 2;
-        if (objects[i].y > canvas.height) {
-            objects.splice(i, 1);
+      }
+      
+      // Update bad objects and check for collisions
+      for (let i = this.badObjects.length - 1; i >= 0; i--) {
+        let obj = this.badObjects[i];
+        obj.update();
+        if (obj.collidesWith(this.dog)) {
+          this.lives--;
+          this.badObjects.splice(i, 1);
+        } else if (obj.y > this.canvas.height) {
+          this.badObjects.splice(i, 1);
         }
+      }
     }
-}
-
-function drawDog() {
-    ctx.drawImage(dogImage, dogX, dogY, dogWidth, dogHeight);  // Draw the larger Jennie
-}
-
-function drawObjects() {
-    for (let i = 0; i < objects.length; i++) {
-        ctx.drawImage(objects[i].image, objects[i].x, objects[i].y, objects[i].width, objects[i].height);  // Draw food and fish
+    
+    draw() {
+      // Clear the canvas
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      // Draw background (using an image)
+      let bg = new Image();
+      bg.src = 'assets/background.png';
+      // To ensure the background loads before drawing, you might preload it;
+      // here we simply draw it every frame.
+      this.ctx.drawImage(bg, 0, 0, this.canvas.width, this.canvas.height);
+      
+      // Draw the dog
+      this.dog.draw(this.ctx);
+      
+      // Draw falling objects
+      this.goodObjects.forEach(obj => obj.draw(this.ctx));
+      this.badObjects.forEach(obj => obj.draw(this.ctx));
+      
+      // Draw score and lives
+      this.ctx.fillStyle = "white";
+      this.ctx.font = "20px Arial";
+      this.ctx.fillText("XP: " + this.score, 10, 30);
+      this.ctx.fillText("Lives: " + this.lives, 300, 30);
     }
-}
-
-function checkCollisions() {
-    for (let i = 0; i < objects.length; i++) {
-        if (dogX < objects[i].x + objects[i].width && dogX + dogWidth > objects[i].x &&
-            dogY < objects[i].y + objects[i].height && dogY + dogHeight > objects[i].y) {
-            
-            if (objects[i].type === "fish") {
-                lives -= 1;  // Lose a life if fish is caught
-            } else {
-                score += objects[i].points;  // Add points for food
-            }
-            objects.splice(i, 1); // Remove the object after collision
-        }
+    
+    gameOver() {
+      clearInterval(this.goodInterval);
+      clearInterval(this.badInterval);
+      this.ctx.fillStyle = "black";
+      this.ctx.font = "30px Arial";
+      this.ctx.fillText("Game Over!", 120, 250);
     }
-}
-
-function updateUI() {
-    document.getElementById("score").innerText = `Score: ${score}`;
-    document.getElementById("lives").innerText = `Lives: ${lives}`;
-    document.getElementById("health").innerText = `Health: ${health}`;
-}
-
-function endGame() {
-    clearInterval(gameInterval);
-    document.getElementById("finalScore").innerText = `Your Score: ${score}`;
-    document.getElementById("endScreen").classList.remove("hidden");
-}
-
-let keys = {};
-window.addEventListener("keydown", (e) => keys[e.key] = true);
-window.addEventListener("keyup", (e) => keys[e.key] = false);
-
-// Implementing the pause functionality
-window.addEventListener("keydown", (e) => {
-    if (e.key === "p" || e.key === "P") {
-        isPaused = !isPaused; // Toggle pause
-        if (!isPaused) {
-            gameInterval = setInterval(updateGame, 20); // Restart game loop
-        } else {
-            clearInterval(gameInterval); // Stop game loop
-        }
-    }
-});
-
-// Update canvas size when the window is resized
-window.addEventListener("resize", updateCanvasSize);
+  }
+  
+  // --- Start-Up Code ---
+  window.onload = function() {
+    const canvas = document.getElementById('gameCanvas');
+    canvas.width = 400;
+    canvas.height = 500;
+    
+    const game = new Game(canvas);
+    const ctx = canvas.getContext('2d');
+    
+    // Draw a simple start screen
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Press SPACE to start", 100, 250);
+    
+    // Wait for SPACE to be pressed to start the game.
+    const startHandler = (e) => {
+      if (e.key === " ") {
+        window.removeEventListener('keydown', startHandler);
+        game.start();
+      }
+    };
+    window.addEventListener('keydown', startHandler);
+    
+    // Listen for arrow keys to move the dog.
+    window.addEventListener('keydown', (e) => {
+      if (e.key === "ArrowLeft") {
+        game.dog.moveLeft();
+      } else if (e.key === "ArrowRight") {
+        game.dog.moveRight();
+      }
+    });
+  };
+  
